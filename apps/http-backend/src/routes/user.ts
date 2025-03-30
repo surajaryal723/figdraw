@@ -9,24 +9,57 @@ import { userSignupSchema, userSigninSchema } from "@repo/common/validation";
 import { roomMiddleware } from "../middlewares/room-middleware";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
+import prisma from "@repo/db/prisma"
+import bcrypt from "bcrypt"
 
 const router: Router = Router();
 
-router.post("/signup", (req: Request, res: Response) => {
+const signupHandler: RequestHandler = async (req, res) => {
   try {
-    const validatedData = userSignupSchema.parse(req.body);
-    res.status(200).json({
+    const { username, email, password } = userSignupSchema.parse(req.body);
+
+    let checkUser = await prisma.user.findFirst({
+      where: {
+        OR: [{ username }, { email }],
+      },
+    });
+
+    if (checkUser) {
+      res.status(401).json({
+        message: "Email or username already exists!",
+      });
+      return;
+    }
+
+    let hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.create({
+      data: {
+        username,
+        email,
+        password: hashedPassword,
+      },
+    });
+
+    res.status(201).json({
       message: "Signup successful",
-      data: validatedData,
-      secret: JWT_SECRET,
     });
   } catch (err: any) {
-    res.json({
-      message: "Signup failed!",
-      error: err.errors[0].message,
+    if (err instanceof Error) {
+      res.status(400).json({
+        message: err.message || "Invalid input data",
+      });
+      return;
+    }
+
+    res.status(500).json({
+      message: "Signup failed due to internal server error!",
     });
   }
-});
+};
+
+router.post("/signup", signupHandler);
+
 router.post("/signin", (req: Request, res: Response) => {
   try {
     const validatedData = userSigninSchema.parse(req.body);
