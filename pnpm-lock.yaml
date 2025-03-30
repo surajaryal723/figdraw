@@ -20,18 +20,6 @@ importers:
 
   apps/http-backend:
     dependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      '@types/dotenv':
-        specifier: ^8.2.3
-        version: 8.2.3
-      '@types/express':
-        specifier: ^5.0.1
-        version: 5.0.1
-      '@types/jsonwebtoken':
-        specifier: ^9.0.9
-        version: 9.0.9
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -44,6 +32,25 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.24.2
+    devDependencies:
+      '@repo/backend-common':
+        specifier: workspace:*
+        version: link:../../packages/backend-common
+      '@repo/common':
+        specifier: workspace:*
+        version: link:../../packages/common
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/dotenv':
+        specifier: ^8.2.3
+        version: 8.2.3
+      '@types/express':
+        specifier: ^5.0.1
+        version: 5.0.1
+      '@types/jsonwebtoken':
+        specifier: ^9.0.9
+        version: 9.0.9
 
   apps/web:
     dependencies:
@@ -84,15 +91,6 @@ importers:
 
   apps/ws-backend:
     dependencies:
-      '@repo/typescript-config':
-        specifier: workspace:*
-        version: link:../../packages/typescript-config
-      '@types/jsonwebtoken':
-        specifier: ^9.0.9
-        version: 9.0.9
-      '@types/ws':
-        specifier: ^8.18.0
-        version: 8.18.0
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
@@ -102,6 +100,42 @@ importers:
       ws:
         specifier: ^8.18.1
         version: 8.18.1
+    devDependencies:
+      '@repo/backend-common':
+        specifier: workspace:*
+        version: link:../../packages/backend-common
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../../packages/typescript-config
+      '@types/jsonwebtoken':
+        specifier: ^9.0.9
+        version: 9.0.9
+      '@types/ws':
+        specifier: ^8.18.0
+        version: 8.18.0
+
+  packages/backend-common:
+    dependencies:
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.4.7
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.13.10
+        version: 22.13.10
+
+  packages/common:
+    dependencies:
+      zod:
+        specifier: ^3.24.2
+        version: 3.24.2
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
 
   packages/eslint-config:
     devDependencies:

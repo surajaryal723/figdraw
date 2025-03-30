@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import {JWT_SECRET} from '@repo/backend-common/config'
 
 interface AuthRequest extends Request {
   email: string;
@@ -24,7 +25,7 @@ export function roomMiddleware(
   try {
     const tokenData = jwt.verify(
       token,
-      process.env.JWT_SECRET || ""
+      JWT_SECRET || ""
     ) as jwt.JwtPayload;
 
     if (!tokenData || typeof tokenData.email !== "string") {
