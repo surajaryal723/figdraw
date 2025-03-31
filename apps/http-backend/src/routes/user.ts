@@ -60,12 +60,40 @@ const signupHandler: RequestHandler = async (req, res) => {
 
 router.post("/signup", signupHandler);
 
-router.post("/signin", (req: Request, res: Response) => {
+
+
+const signinHandler:RequestHandler=async(req,res)=>{
   try {
-    const validatedData = userSigninSchema.parse(req.body);
-   
+    const {email,password} = userSigninSchema.parse(req.body);
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email
+      },
+      select:{
+        password:true,
+        id:true
+      }
+    });
     
-    let token = jwt.sign({ email: validatedData.email }, JWT_SECRET || "");
+
+    if (!user) {
+      res.status(401).json({
+        message: "Email is not registered!"
+      });
+      return;
+    }
+    let comparePassword = await bcrypt.compare(password,user.password)
+
+    if(!comparePassword){
+      res.status(401).json({
+        message:'Incorrect password!'
+      })
+      return;
+    }
+    
+    
+    let token = jwt.sign({ id:user.id }, JWT_SECRET || "");
     
     
     res.status(200).send({ message: "Signed In", token });
@@ -76,12 +104,13 @@ router.post("/signin", (req: Request, res: Response) => {
       error: err.message,
     });
   }
-});
+}
+
+router.post("/signin", signinHandler);
 // @ts-ignore
 router.post("/room", roomMiddleware, (req: Request, res: Response) => {
   res.json({
-    // @ts-ignore
-    email: req.email,
+   
     // @ts-ignore
     token: req.token,
   });

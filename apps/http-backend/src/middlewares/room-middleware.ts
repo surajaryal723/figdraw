@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import {JWT_SECRET} from '@repo/backend-common/config'
+import prisma from "@repo/db/prisma";
 
 interface AuthRequest extends Request {
   email: string;
@@ -32,7 +33,7 @@ export function roomMiddleware(
       return res.status(401).json({ message: "Invalid token payload" });
     }
     req.token = token;
-    req.email = tokenData.email;
+    
     next();
   } catch (err) {
     return res.status(401).json({ message: "Invalid token" });
