@@ -3,12 +3,12 @@ import jwt from "jsonwebtoken";
 import {JWT_SECRET} from '@repo/backend-common/config'
 import prisma from "@repo/db/prisma";
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   email: string;
   token: string;
 }
 
-export function roomMiddleware(
+export async function roomMiddleware(
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -29,10 +29,24 @@ export function roomMiddleware(
       JWT_SECRET || ""
     ) as jwt.JwtPayload;
 
-    if (!tokenData || typeof tokenData.email !== "string") {
+    if (!tokenData || typeof tokenData.id !== "string") {
       return res.status(401).json({ message: "Invalid token payload" });
     }
-    req.token = token;
+    let user=await prisma.user.findUnique({
+      where:{
+        id:tokenData.id
+      },
+      select:{
+        id:true
+      }
+    })
+    if(!user){
+      res.json({
+        message:'No user exist with provided token'
+      })
+      return;
+    }
+    req.token=tokenData.id
     
     next();
   } catch (err) {
