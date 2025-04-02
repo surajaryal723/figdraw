@@ -1,4 +1,4 @@
-import dotenv from "dotenv"
+import dotenv, { parse } from "dotenv"
 dotenv.config()
 import { WebSocketServer, WebSocket } from "ws";
 import jwt, { JwtPayload } from "jsonwebtoken"
@@ -57,10 +57,37 @@ wss.on('connection',(socket,request)=>{
 
     socket.on('message',(data)=>{
         const parsedData=JSON.parse(data as unknown as string)
+        
+        
         if(parsedData.type==='join'){
             const user=users.find(x=>x.socket===socket)
             user?.rooms.push(parsedData.roomId)
-            
+        } 
+
+        if(parsedData.type==='leave'){
+            const user=users.find(x=>x.socket===socket)
+            if(!user){
+                return;
+            }
+            user.rooms=user?.rooms.filter(x=>x===parsedData.room)
+        }
+
+        if(parsedData.type==='chat'){
+            const roomId=parsedData.roomId
+            const message=parsedData.message
+
+            users.forEach(user=>{
+                if(user.rooms.includes(roomId)){
+                    user.socket.send(JSON.stringify({
+                        type:"chat",
+                        message:message,
+                        roomId:roomId
+                    }))
+                }
+            })
+
         }
     })
+
+
 })
