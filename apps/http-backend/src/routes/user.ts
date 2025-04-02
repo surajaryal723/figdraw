@@ -6,7 +6,7 @@ import {
   NextFunction,
 } from "express";
 import { userSignupSchema, userSigninSchema } from "@repo/common/validation";
-import { roomMiddleware,AuthRequest } from "../middlewares/room-middleware";
+import { roomMiddleware, AuthRequest } from "../middlewares/room-middleware";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/backend-common/config";
 import prisma from "@repo/db/prisma";
@@ -41,19 +41,12 @@ const signupHandler: RequestHandler = async (req, res) => {
       },
     });
 
-    res.status(201).json({
+    res.status(200).json({
       message: "Signup successful",
     });
-  } catch (err: any) {
-    if (err instanceof Error) {
-      res.status(400).json({
-        message: err.message || "Invalid input data",
-      });
-      return;
-    }
-
-    res.status(500).json({
-      message: "Signup failed due to internal server error!",
+  } catch (e: any) {
+    res.status(401).json({
+      message: e.issues[0].message || "Something went wrong!",
     });
   }
 };
@@ -102,66 +95,70 @@ const signinHandler: RequestHandler = async (req, res) => {
 };
 
 router.post("/signin", signinHandler);
-// @ts-ignore
-router.post("/room", roomMiddleware, async(req: AuthRequest, res: Response) => {
-  let slug=req.body.slug
-  let adminId=req.token
-   try{
-    let checkSlug=await prisma.room.findUnique({
-      where:{
-        slug
+
+router.post(
+  "/room",
+  // @ts-ignore
+  roomMiddleware,
+  async (req: AuthRequest, res: Response) => {
+    let slug = req.body.slug;
+    let adminId = req.userId;
+    try {
+      let checkSlug = await prisma.room.findUnique({
+        where: {
+          slug,
+        },
+      });
+      if (checkSlug) {
+        res.json({
+          message: "Slug already exists!",
+        });
+        return;
       }
-    })
-    if(checkSlug){
+
+      let room = await prisma.room.create({
+        data: {
+          adminId,
+          slug,
+        },
+      });
+      if (room) {
+        res.json({
+          message: "Room created successfully!",
+          roomId: room.id,
+        });
+        return;
+      }
       res.json({
-        message:'Slug already exists!'
-      })
-      return;
+        message: "Unable to create room",
+      });
+    } catch (e) {
+      res.json({
+        message: "Something went wrong!",
+      });
     }
-
-     let room=await prisma.room.create({
-               data:{
-                 adminId,
-                 slug
-               }
-     })
-     if(room){
-      res.json({
-        message:"Room created successfully!",
-        roomId:room.id
-      })
-      return;
-     }
-     res.json({
-      message:'Unable to create room'
-     })
-
-     
-   }catch(e){
-    res.json({
-      message:'Something went wrong!'
-    })
-   }
-})
-
+  }
+);
 
 router.get(
   "/chats",
   // @ts-ignore
   roomMiddleware,
   async (req: AuthRequest, res: Response) => {
+    let roomId = req.query.roomId;
+   
     try {
-      let tokenData = jwt.verify(req.token, JWT_SECRET as string) as JwtPayload;
+  
       let user = await prisma.user.findUnique({
         where: {
-          id: tokenData.id,
+          id: req.userId
         },
         select: {
           username: true,
         },
       });
       res.json({
-        message: `Hello ${user?.username}`,
+        message: `Hello ${user?.username} Roomid ${roomId}`,
       });
       return;
     } catch (e) {
@@ -169,11 +166,6 @@ router.get(
         message: "Invalid token!",
       });
     }
-    res.json({
-      message: "Room is available",
-
-      token: req.token,
-    });
   }
 );
 

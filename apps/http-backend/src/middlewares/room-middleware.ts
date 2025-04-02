@@ -3,11 +3,10 @@ import jwt from "jsonwebtoken";
 import {JWT_SECRET} from '@repo/backend-common/config'
 import prisma from "@repo/db/prisma";
 
-export interface AuthRequest extends Request {
-  email: string;
-  token: string;
+export interface AuthRequest extends Request{
+  userId:string,
+  token:string
 }
-
 export async function roomMiddleware(
   req: AuthRequest,
   res: Response,
@@ -46,7 +45,8 @@ export async function roomMiddleware(
       })
       return;
     }
-    req.token=tokenData.id
+    req.userId=user.id
+    req.token=token
     
     next();
   } catch (err) {
