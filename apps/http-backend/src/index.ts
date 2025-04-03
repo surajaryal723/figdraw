@@ -12,5 +12,5 @@ app.use('/user/api/v1',router)
 
 
 
-app.listen(8080)
+app.listen(3001)
 

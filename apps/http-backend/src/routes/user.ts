@@ -141,26 +141,37 @@ router.post(
 );
 
 router.get(
-  "/chats",
+  "/chats/:roomId",
   // @ts-ignore
   roomMiddleware,
   async (req: AuthRequest, res: Response) => {
-    let roomId = req.query.roomId;
+    let roomId = Number(req.params.roomId);
    
     try {
   
-      let user = await prisma.user.findUnique({
-        where: {
-          id: req.userId
+      let messages=await prisma.chat.findMany({
+        where:{
+          roomId
         },
-        select: {
-          username: true,
+        orderBy:{
+          id:'desc'
         },
-      });
-      res.json({
-        message: `Hello ${user?.username} Roomid ${roomId}`,
-      });
-      return;
+        take:50,
+        select:{
+          message:true
+        }
+
+      })
+
+      if(messages){
+    res.json({
+      message:messages
+
+})
+return
+      }
+      
+      
     } catch (e) {
       res.json({
         message: "Invalid token!",

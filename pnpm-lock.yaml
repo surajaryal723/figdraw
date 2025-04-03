@@ -103,6 +103,9 @@ importers:
       '@repo/backend-common':
         specifier: workspace:*
         version: link:../../packages/backend-common
+      '@repo/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
